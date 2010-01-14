@@ -2,6 +2,7 @@
 #include "conditional_assert.h"
 #include <cstring>
 #include <sstream>
+#include <iostream>
 
 namespace Hex {
 
@@ -34,7 +35,7 @@ inline bool Player::operator!= (const Player& player) {
 
 inline Player::Player(uint val) : _val(val) {}
 
-inline uint Player::GetVal() { return _val; }
+inline uint Player::GetVal() const { return _val; }
 
 inline bool Player::ValidPlayer(const std::string& player) {
 	return player == "black" || player == "white";
@@ -121,6 +122,7 @@ const uint Board::table_size = kBoardSizeAligned * kBoardSizeAligned;
 
 const Board Board::Empty() {
 
+	std::cerr << "Empty" << std::endl;
 	Board board;
 
 	uint counter = 0;
@@ -132,14 +134,18 @@ const Board Board::Empty() {
 		}
 	}
 
-	for (uint i = 0; i < table_size; i++)
+	for (uint i = 0; i < table_size; i++) {
 		board._board[i] = 0;
+		board._bridges[0][i] = 0;
+		board._bridges[1][i] = 0;
+	}
 	for (uint i = 1; i <= kBoardSize; ++i)
 		board._board[i] = 1;
 	for (uint i = (guarded_board_size - 1) * kBoardSizeAligned + 1;
 			i < (guarded_board_size - 1) * (kBoardSizeAligned + 1); ++i) {
 		board._board[i] = (guarded_board_size - 1) * kBoardSizeAligned + 1;
 	}
+	board._last = 0;
 
 	return board;
 }
@@ -150,7 +156,9 @@ inline Player Board::CurrentPlayer() const {
 
 Move Board::RandomLegalMove (const Player& player) const {
 	return Move(player,
-			Location(_fast_field_map[Rand::next_rand(_moves_left)]));
+			Location(_bridges[player.GetVal()][_last] == 0
+				? _fast_field_map[Rand::next_rand(_moves_left)]
+				: _bridges[player.GetVal()][_last]));
 }
 
 inline void Board::PlayLegal (const Move& move) {
@@ -162,11 +170,46 @@ inline void Board::PlayLegal (const Move& move) {
 	} else {
 		_board[pos] = -1;
 	}
+	//std::cerr << "playing: " << move.GetLocation().ToCoords() << std::endl;
 	uint fast_map_pos = _reverse_fast_field_map[pos];
 	uint replace_pos = _fast_field_map[--_moves_left];
 	_fast_field_map[fast_map_pos] = replace_pos;
 	_reverse_fast_field_map[replace_pos] = fast_map_pos;
 	_current = _current.Opponent();
+	_last = pos;
+	_bridges[0][_bridges[0][pos]] = 0;
+	_bridges[1][_bridges[1][pos]] = 0;
+}
+
+// FIXME: inline-y do *.h
+inline void Board::FindBridges() {
+	//std::cerr << "Finding bridges" << std::endl;
+	// FIXME: nie wszystkie mosty wykrywane
+	for (uint i = 0; i < _moves_left; ++i) {
+		uint pos = _fast_field_map[i];
+		FindBridge(pos - kBoardSizeAligned, pos + kBoardSizeAligned - 1, pos - 1, pos);
+		FindBridge(pos - kBoardSizeAligned + 1, pos - 1, pos - kBoardSizeAligned, pos);
+		FindBridge(pos + 1, pos - kBoardSizeAligned, pos - kBoardSizeAligned + 1, pos);
+	}
+}
+
+inline void Board::FindBridge(uint beg, uint end, uint left, uint right) {
+	if (_board[left] == 0 && _board[right] == 0) {
+		if (_board[beg] < 0 && _board[end] < 0 && _bridges[1][left] == 0 && _bridges[1][right] == 0) {
+			_bridges[1][left] = right;
+			_bridges[1][right] = left;
+		} else if (_board[beg] > 0 && _board[end] > 0 && _bridges[0][left] == 0 && _bridges[0][right] == 0) {
+			
+			_bridges[0][left] = right;
+			_bridges[0][right] = left;
+		}
+		/*
+		if (_board[beg] < 0 && _board[end] < 0)
+			std::cerr << "Bridge found: " << Location(left).ToCoords() << " -- " << Location(right).ToCoords() << std::endl;
+		if (_board[beg] > 0 && _board[end] > 0)
+			std::cerr << "Bridge found: " << Location(left).ToCoords() << " -- " << Location(right).ToCoords() << std::endl;
+		*/
+	}
 }
 
 inline void Board::MakeUnion(uint pos) {

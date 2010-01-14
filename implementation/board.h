@@ -42,7 +42,7 @@ class Player {
   bool operator== (const Player&);
   bool operator!= (const Player&);
 
-  uint GetVal();
+  uint GetVal() const;
 
   static bool ValidPlayer(const std::string& player);
 
@@ -113,12 +113,14 @@ class Board {
   void GetPossiblePositions(ushort_ptr& locations);
   std::string ToAsciiArt(Location last_move) const;
   bool IsValidMove(const Move& move);
+  void FindBridges();
 
  private:
   void MakeUnion(uint pos);
   uint MakeUnion(uint pos1, uint pos2);
   uint Find(uint pos);
   uint ConstFind(uint pos) const;
+  void FindBridge(uint beg, uint end, uint left, uint right);
 
  private:
   static const uint table_size;
@@ -128,6 +130,12 @@ class Board {
   unsigned short _reverse_fast_field_map[kBoardSizeAligned * kBoardSizeAligned];
   uint _moves_left;
   Player _current;
+  /**
+   * Mapa mostów. Na pozycji o indeksie pos przechowuje współrzędne pola sparowanego
+   * wewnątrz mostu lub 0 jeśli pozycja nie zawiera mostów.
+   */
+  unsigned short _bridges[2][kBoardSizeAligned * kBoardSizeAligned];
+  uint _last;
 };
 
 // -----------------------------------------------------------------------------

@@ -68,6 +68,7 @@ Move MCTSTree::BestMove(Player player, Board& board) {
 		}
 
 		Player current = brd.CurrentPlayer();
+		brd.FindBridges();
 		Player winner = RandomFinish(brd, full_path, current_level);
 
 		for (int level = current_level; level >= 0; --level) {
