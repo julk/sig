@@ -18,6 +18,7 @@ Protocol::Protocol() {
 	gtp.Register ("showboard",				this, &Protocol::CShowBoard);
 	gtp.Register ("set_playouts_per_move",	this, &Protocol::CSetPlayoutsPerMove);
 	gtp.Register ("showtree",				this, &Protocol::CShowTree);
+	gtp.Register ("showbridges",				this, &Protocol::CShowBridges);
 	gtp.Register ("genmove_noplay",			this, &Protocol::CGenMoveNoPlay);
 }
 
@@ -105,6 +106,12 @@ void Protocol::CShowTree(Gtp::Io& inout) {
 	std::string ascii_tree;
 	game.PrintTree(ascii_tree, children);
 	inout.out << std::endl << ascii_tree;
+}
+
+void Protocol::CShowBridges(Gtp::Io& inout) {
+	std::string ascii_bridges;
+	game.PrintBridges(ascii_bridges);
+	inout.out << std::endl << std::endl << ascii_bridges;
 }
 
 void Protocol::CGenMoveNoPlay(Gtp::Io& inout) {

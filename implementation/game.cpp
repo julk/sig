@@ -33,6 +33,11 @@ void Game::PrintBoard(std::string& board) {
 	board = current_board.ToAsciiArt(last_move);
 }
 
+void Game::PrintBridges(std::string& bridges) {
+	current_board.FindBridges();
+	bridges = current_board.ToAsciiBridges();
+}
+
 void Game::SetPlayoutsPerMove(uint playouts) {
 	tree.SetPlayoutsPerMove(playouts);
 }

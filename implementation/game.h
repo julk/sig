@@ -13,6 +13,7 @@ public:
 	Move GenMove(Player player);
 	void SetMaxUTCTreeDepth(uint depth);
 	void PrintBoard(std::string& board);
+	void PrintBridges(std::string& board);
 	void SetPlayoutsPerMove(uint playouts);
 	void PrintTree(std::string& ascii_tree, uint children);
 	bool IsValidMove(const Move& move);

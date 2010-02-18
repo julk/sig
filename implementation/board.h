@@ -10,6 +10,8 @@ namespace Hex {
 const uint kBoardSize = 11;
 const uint kBoardSizeAligned = 13;	// kBoardSize + 2
 
+const uint kBridgeProb = 90		// 90%
+
 // -----------------------------------------------------------------------------
 
 class Rand {
@@ -112,6 +114,7 @@ class Board {
   uint MovesLeft() const;
   void GetPossiblePositions(ushort_ptr& locations);
   std::string ToAsciiArt(Location last_move) const;
+  std::string ToAsciiBridges() const;
   bool IsValidMove(const Move& move);
   void FindBridges();
 
